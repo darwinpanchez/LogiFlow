@@ -101,6 +101,51 @@ LogiFlow es una plataforma completa de microservicios diseñada para gestionar o
 | Build Tool | Maven | 3.9+ |
 | API Gateway | Kong | 3.4 |
 | Containerización | Docker + Docker Compose | Latest |
+| Documentación API | Springdoc OpenAPI | 2.6.0 |
+| Testing | JUnit 5 + Mockito | Latest |
+
+## Documentación OpenAPI (Swagger UI)
+
+Cada microservicio expone su contrato OpenAPI 3.0 y Swagger UI interactivo:
+
+| Servicio | Swagger UI | API Docs JSON |
+|----------|------------|---------------|
+| Auth Service | http://localhost:8082/swagger-ui.html | http://localhost:8082/v3/api-docs |
+| Pedido Service | http://localhost:8083/swagger-ui.html | http://localhost:8083/v3/api-docs |
+| Fleet Service | http://localhost:8084/swagger-ui.html | http://localhost:8084/v3/api-docs |
+| Billing Service | http://localhost:8085/swagger-ui.html | http://localhost:8085/v3/api-docs |
+
+**A través de Kong Gateway**:
+- Auth: http://localhost:8000/auth/swagger-ui.html
+- Pedidos: http://localhost:8000/pedidos/swagger-ui.html
+- Fleet: http://localhost:8000/fleet/swagger-ui.html
+- Billing: http://localhost:8000/billing/swagger-ui.html
+
+## Pruebas Unitarias
+
+Tests JUnit 5 + Mockito implementados en cada servicio:
+
+```powershell
+# Ejecutar tests de un servicio específico
+cd backend/auth-service
+mvn test
+
+# Ejecutar todos los tests
+cd delivery
+mvn test -pl backend/auth-service,backend/pedido-service,backend/fleet-service,backend/billing-service
+
+# Ver reporte de cobertura
+mvn test jacoco:report
+```
+
+**Casos de prueba implementados**:
+- ✅ Creación de pedido con validación de tipo de entrega
+- ✅ Asignación de repartidor disponible  
+- ✅ Rechazo de petición no autenticada (401)
+- ✅ Rechazo sin permisos (403)
+- ✅ Login con credenciales inválidas
+- ✅ Pago de factura ya pagada (409)
+- ✅ Validación de datos con Jakarta Validation
 
 ## Inicio Rápido
 
