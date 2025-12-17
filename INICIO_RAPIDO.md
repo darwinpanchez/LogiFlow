@@ -29,12 +29,9 @@ docker-compose ps
 
 ### 2️⃣ Verificar que Kong esté Listo
 
-```powershell
-# Esperar ~2-3 minutos y verificar salud de Kong
-curl http://localhost:8001/status
+**GET** `http://localhost:8001/status`
 
-# Deberías ver: {"database":{"reachable":true},...}
-```
+Deberías ver: `{"database":{"reachable":true},...}`
 
 ### 3️⃣ Configurar Rutas en Kong (AUTOMÁTICO)
 
@@ -67,36 +64,30 @@ docker exec -i logiflow_billing_db psql -U postgres -d db_logiflow_billing < bac
 
 ---
 
-## 🧪 Pruebas con Kong Gateway (Puerto 8000)
+## 🧪 Pruebas con Postman (Kong Gateway - Puerto 8000)
 
 ### ✅ Prueba 1: Verificar Servicios
 
-```powershell
-# Auth Service
-curl http://localhost:8000/auth/
-
-# Pedido Service
-curl http://localhost:8000/pedidos/
-
-# Fleet Service
-curl http://localhost:8000/fleet/
-
-# Billing Service
-curl http://localhost:8000/billing/
-```
+**GET** `http://localhost:8000/auth/`
+**GET** `http://localhost:8000/pedidos/`
+**GET** `http://localhost:8000/fleet/`
+**GET** `http://localhost:8000/billing/`
 
 ### ✅ Prueba 2: Login y Obtener Token
 
-```powershell
-# Login con usuario admin
-curl -X POST http://localhost:8000/auth/api/auth/login `
-  -H "Content-Type: application/json" `
-  -d '{
-    "username": "admin",
-    "password": "password123"
-  }'
+**POST** `http://localhost:8000/auth/api/auth/login`
 
-# Guardar el accessToken de la respuesta
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "username": "admin",
+  "password": "password123"
+}
 ```
 
 **Respuesta esperada**:
@@ -112,77 +103,90 @@ curl -X POST http://localhost:8000/auth/api/auth/login `
 }
 ```
 
-### ✅ Prueba 3: Listar Pedidos (a través de Kong)
-
-```powershell
-curl http://localhost:8000/pedidos/api/pedidos
+**💡 Guardar el `accessToken` en una variable de Postman:**
+1. En la pestaña **Tests** del request, agregar:
+```javascript
+pm.test("Login exitoso", function () {
+    var jsonData = pm.response.json();
+    pm.environment.set("access_token", jsonData.accessToken);
+});
 ```
+
+### ✅ Prueba 3: Listar Pedidos
+
+**GET** `http://localhost:8000/pedidos/api/pedidos`
 
 **Respuesta esperada**: Lista de 8 pedidos
 
 ### ✅ Prueba 4: Listar Repartidores
 
-```powershell
-curl http://localhost:8000/fleet/api/repartidores
-```
+**GET** `http://localhost:8000/fleet/api/repartidores`
 
 **Respuesta esperada**: Lista de 7 repartidores
 
 ### ✅ Prueba 5: Listar Vehículos
 
-```powershell
-curl http://localhost:8000/fleet/api/vehiculos
-```
+**GET** `http://localhost:8000/fleet/api/vehiculos`
 
 **Respuesta esperada**: Lista de 6 vehículos
 
 ### ✅ Prueba 6: Listar Facturas
 
-```powershell
-curl http://localhost:8000/billing/api/facturas
-```
+**GET** `http://localhost:8000/billing/api/facturas`
 
 **Respuesta esperada**: Lista de 8 facturas
 
 ### ✅ Prueba 7: Crear Pedido (POST)
 
-```powershell
-curl -X POST http://localhost:8000/pedidos/api/pedidos `
-  -H "Content-Type: application/json" `
-  -d '{
-    "clienteId": "c1111111-1111-1111-1111-111111111111",
-    "clienteNombre": "Juan Pérez",
-    "clienteTelefono": "0991234567",
-    "clienteEmail": "cliente1@logiflow.com",
-    "direccionOrigen": "Av. Amazonas N24-03",
-    "coordenadasOrigen": "-0.1807,-78.4678",
-    "direccionDestino": "Av. 6 de Diciembre N36-15",
-    "coordenadasDestino": "-0.1650,-78.4822",
-    "tipoEntrega": "URBANA_RAPIDA",
-    "pesoKg": 2.5,
-    "descripcionPaquete": "Documentos urgentes",
-    "prioridad": "URGENTE"
-  }'
+**POST** `http://localhost:8000/pedidos/api/pedidos`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "clienteId": "c1111111-1111-1111-1111-111111111111",
+  "clienteNombre": "Juan Pérez",
+  "clienteTelefono": "0991234567",
+  "clienteEmail": "cliente1@logiflow.com",
+  "direccionOrigen": "Av. Amazonas N24-03",
+  "coordenadasOrigen": "-0.1807,-78.4678",
+  "direccionDestino": "Av. 6 de Diciembre N36-15",
+  "coordenadasDestino": "-0.1650,-78.4822",
+  "tipoEntrega": "URBANA_RAPIDA",
+  "pesoKg": 2.5,
+  "descripcionPaquete": "Documentos urgentes",
+  "prioridad": "URGENTE"
+}
 ```
 
 ### ✅ Prueba 8: Crear Factura (POST)
 
-```powershell
-curl -X POST http://localhost:8000/billing/api/facturas `
-  -H "Content-Type: application/json" `
-  -d '{
-    "pedidoId": "c1111111-1111-1111-1111-111111111111",
-    "numeroPedido": "PED-20240115-100000-0001",
-    "clienteId": "a1111111-1111-1111-1111-111111111111",
-    "clienteNombre": "Juan Pérez",
-    "tipoEntrega": "URBANA_RAPIDA",
-    "distanciaKm": 5.0,
-    "pesoKg": 2.5,
-    "prioridad": "NORMAL",
-    "descuento": 0.00,
-    "fechaVencimiento": "2024-02-15",
-    "observaciones": "Factura de prueba desde Kong"
-  }'
+**POST** `http://localhost:8000/billing/api/facturas`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "pedidoId": "c1111111-1111-1111-1111-111111111111",
+  "numeroPedido": "PED-20240115-100000-0001",
+  "clienteId": "a1111111-1111-1111-1111-111111111111",
+  "clienteNombre": "Juan Pérez",
+  "tipoEntrega": "URBANA_RAPIDA",
+  "distanciaKm": 5.0,
+  "pesoKg": 2.5,
+  "prioridad": "NORMAL",
+  "descuento": 0.00,
+  "fechaVencimiento": "2024-02-15",
+  "observaciones": "Factura de prueba desde Kong"
+}
 ```
 
 ---
@@ -190,19 +194,13 @@ curl -X POST http://localhost:8000/billing/api/facturas `
 ## 🔍 Verificar Configuración de Kong
 
 ### Ver Servicios Registrados
-```powershell
-curl http://localhost:8001/services
-```
+**GET** `http://localhost:8001/services`
 
 ### Ver Rutas Configuradas
-```powershell
-curl http://localhost:8001/routes
-```
+**GET** `http://localhost:8001/routes`
 
 ### Ver Plugins Activos
-```powershell
-curl http://localhost:8001/plugins
-```
+**GET** `http://localhost:8001/plugins`
 
 ---
 
@@ -256,76 +254,242 @@ docker-compose ps
 
 ---
 
-## 🎯 Flujo de Trabajo Completo (Prueba End-to-End)
+## 🎯 Flujo de Trabajo Completo (Prueba End-to-End con Postman)
 
-### 1. Login
-```powershell
-$response = curl -X POST http://localhost:8000/auth/api/auth/login `
-  -H "Content-Type: application/json" `
-  -d '{"username": "admin", "password": "password123"}' | ConvertFrom-Json
+### 1️⃣ Login (Administrador)
 
-$token = $response.accessToken
+**POST** `http://localhost:8000/auth/api/auth/login`
+
+**Headers:**
+```
+Content-Type: application/json
 ```
 
-### 2. Crear Cliente
-```powershell
-curl -X POST http://localhost:8000/auth/api/auth/register `
-  -H "Content-Type: application/json" `
-  -d '{
-    "username": "clientePrueba",
-    "email": "prueba@logiflow.com",
-    "password": "password123",
-    "nombreCompleto": "Cliente de Prueba"
-  }'
+**Body (raw JSON):**
+```json
+{
+  "username": "admin",
+  "password": "password123"
+}
 ```
 
-### 3. Crear Pedido
-```powershell
-curl -X POST http://localhost:8000/pedidos/api/pedidos `
-  -H "Content-Type: application/json" `
-  -d '{
-    "clienteId": "UUID_DEL_CLIENTE",
-    "clienteNombre": "Cliente de Prueba",
-    "direccionOrigen": "Calle A",
-    "direccionDestino": "Calle B",
-    "coordenadasOrigen": "-0.1807,-78.4678",
-    "coordenadasDestino": "-0.1650,-78.4822",
-    "tipoEntrega": "URBANA_RAPIDA",
-    "pesoKg": 3.0,
-    "prioridad": "NORMAL"
-  }'
+**Tests (Postman Script):**
+```javascript
+pm.test("Login exitoso", function () {
+    var jsonData = pm.response.json();
+    pm.environment.set("access_token", jsonData.accessToken);
+});
 ```
 
-### 4. Asignar Repartidor
-```powershell
-curl -X PATCH http://localhost:8000/pedidos/api/pedidos/{PEDIDO_ID}/asignar-repartidor `
-  -H "Content-Type: application/json" `
-  -d '{
-    "repartidorId": "UUID_DEL_REPARTIDOR"
-  }'
+---
+
+### 2️⃣ Crear Cliente (Registro)
+
+**POST** `http://localhost:8000/auth/api/auth/register`
+
+**Headers:**
+```
+Content-Type: application/json
 ```
 
-### 5. Generar Factura
-```powershell
-curl -X POST http://localhost:8000/billing/api/facturas `
-  -H "Content-Type: application/json" `
-  -d '{
-    "pedidoId": "UUID_DEL_PEDIDO",
-    "clienteId": "UUID_DEL_CLIENTE",
-    "tipoEntrega": "URBANA_RAPIDA",
-    "distanciaKm": 5.0,
-    "pesoKg": 3.0,
-    "prioridad": "NORMAL"
-  }'
+**Body (raw JSON):**
+```json
+{
+  "username": "clientePrueba",
+  "email": "prueba@logiflow.com",
+  "password": "password123",
+  "nombreCompleto": "Cliente de Prueba"
+}
 ```
 
-### 6. Registrar Pago
-```powershell
-curl -X PATCH http://localhost:8000/billing/api/facturas/{FACTURA_ID}/pagar `
-  -H "Content-Type: application/json" `
-  -d '{
-    "metodoPago": "Tarjeta de Crédito"
-  }'
+**Tests (Postman Script):**
+```javascript
+pm.test("Cliente registrado", function () {
+    var jsonData = pm.response.json();
+    pm.environment.set("cliente_id", jsonData.id);
+});
+```
+
+---
+
+### 3️⃣ Crear Pedido
+
+**POST** `http://localhost:8000/pedidos/api/pedidos`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "clienteId": "{{cliente_id}}",
+  "clienteNombre": "Cliente de Prueba",
+  "clienteTelefono": "0991234567",
+  "clienteEmail": "prueba@logiflow.com",
+  "direccionOrigen": "Av. Amazonas N24-03",
+  "coordenadasOrigen": "-0.1807,-78.4678",
+  "direccionDestino": "Av. 6 de Diciembre N36-15",
+  "coordenadasDestino": "-0.1650,-78.4822",
+  "tipoEntrega": "URBANA_RAPIDA",
+  "pesoKg": 3.0,
+  "descripcionPaquete": "Paquete de prueba",
+  "prioridad": "NORMAL"
+}
+```
+
+**Tests (Postman Script):**
+```javascript
+pm.test("Pedido creado", function () {
+    var jsonData = pm.response.json();
+    pm.environment.set("pedido_id", jsonData.id);
+});
+```
+
+---
+
+### 4️⃣ Asignar Repartidor al Pedido
+
+**PATCH** `http://localhost:8000/pedidos/api/pedidos/{{pedido_id}}/asignar-repartidor`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "repartidorId": "a1111111-1111-1111-1111-111111111111",
+  "repartidorNombre": "Carlos Mendoza"
+}
+```
+
+---
+
+### 5️⃣ Generar Factura del Pedido
+
+**POST** `http://localhost:8000/billing/api/facturas`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "pedidoId": "{{pedido_id}}",
+  "numeroPedido": "PED-TEST-001",
+  "clienteId": "{{cliente_id}}",
+  "clienteNombre": "Cliente de Prueba",
+  "tipoEntrega": "URBANA_RAPIDA",
+  "distanciaKm": 5.0,
+  "pesoKg": 3.0,
+  "prioridad": "NORMAL",
+  "descuento": 0.00,
+  "fechaVencimiento": "2024-02-15",
+  "observaciones": "Factura de prueba end-to-end"
+}
+```
+
+**Tests (Postman Script):**
+```javascript
+pm.test("Factura generada", function () {
+    var jsonData = pm.response.json();
+    pm.environment.set("factura_id", jsonData.id);
+});
+```
+
+---
+
+### 6️⃣ Registrar Pago de Factura
+
+**PATCH** `http://localhost:8000/billing/api/facturas/{{factura_id}}/pagar`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "metodoPago": "Tarjeta de Crédito"
+}
+```
+
+---
+
+### 7️⃣ Cambiar Estado del Pedido a "En Ruta"
+
+**PATCH** `http://localhost:8000/pedidos/api/pedidos/{{pedido_id}}/estado`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "nuevoEstado": "EN_RUTA"
+}
+```
+
+---
+
+### 8️⃣ Actualizar Ubicación del Repartidor
+
+**PATCH** `http://localhost:8000/fleet/api/repartidores/a1111111-1111-1111-1111-111111111111/ubicacion`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "coordenadas": "-0.1700,-78.4750"
+}
+```
+
+---
+
+### 9️⃣ Marcar Pedido como Entregado
+
+**PATCH** `http://localhost:8000/pedidos/api/pedidos/{{pedido_id}}/estado`
+
+**Headers:**
+```
+Content-Type: application/json
+```
+
+**Body (raw JSON):**
+```json
+{
+  "nuevoEstado": "ENTREGADO"
+}
+```
+
+---
+
+### 🔟 Consultar Factura Pagada
+
+**GET** `http://localhost:8000/billing/api/facturas/{{factura_id}}`
+
+**Respuesta esperada:**
+```json
+{
+  "id": "...",
+  "numeroFactura": "FAC-...",
+  "estado": "PAGADA",
+  "metodoPago": "Tarjeta de Crédito",
+  "totalAPagar": 6.50,
+  ...
+}
 ```
 
 ---
@@ -361,6 +525,7 @@ curl -X PATCH http://localhost:8000/billing/api/facturas/{FACTURA_ID}/pagar `
 3. **Bases de datos**: Se crean automáticamente con `ddl-auto: update`
 4. **Datos de prueba**: Cárgalos después de que los servicios estén corriendo
 5. **Puertos**: Asegúrate de que los puertos 8000, 8001, 8082-8085, 5434-5438 estén libres
+6. **Variables Postman**: Usa variables de entorno para `{{access_token}}`, `{{cliente_id}}`, `{{pedido_id}}`, `{{factura_id}}`
 
 ---
 
@@ -401,33 +566,62 @@ docker-compose logs logiflow_auth_db
 
 ---
 
-## 🎯 Flujo Completo End-to-End (Ejemplo Realista)
+## 📖 Documentación OpenAPI (Swagger UI)
 
-Este flujo muestra el ciclo completo de una entrega desde registro hasta pago:
+Cada microservicio expone su contrato OpenAPI 3.0 en Swagger UI.
 
-### Paso 1: Registrar Cliente
+**⚠️ Importante**: Swagger UI solo está disponible mediante **acceso directo** a cada servicio (no a través de Kong Gateway).
 
-```powershell
-curl -X POST http://localhost:8000/auth/api/auth/register `
-  -H "Content-Type: application/json" `
-  -d '{
-    "username": "maria.lopez",
-    "password": "SecurePass123!",
-    "email": "maria.lopez@gmail.com",
-    "nombreCompleto": "María López García",
-    "telefono": "0987654321",
-    "rol": "CLIENTE"
-  }'
-```
+### Acceso Directo (Recomendado para Documentación)
+- **Auth Service**: http://localhost:8082/swagger-ui.html
+- **Pedido Service**: http://localhost:8083/swagger-ui.html
+- **Fleet Service**: http://localhost:8084/swagger-ui.html
+- **Billing Service**: http://localhost:8085/swagger-ui.html
 
-**Respuesta esperada**: Usuario creado con `accessToken` y `refreshToken`
+### Descargar OpenAPI JSON
+- **Auth**: http://localhost:8082/v3/api-docs
+- **Pedido**: http://localhost:8083/v3/api-docs
+- **Fleet**: http://localhost:8084/v3/api-docs
+- **Billing**: http://localhost:8085/v3/api-docs
 
-### Paso 2: Login del Cliente
+**💡 Tip**: Usa Swagger UI para explorar los endpoints disponibles, ver ejemplos de request/response y probar llamadas directas. Para pruebas a través del Gateway, usa Postman con los ejemplos de este documento.
 
-```powershell
-curl -X POST http://localhost:8000/auth/api/auth/login `
-  -H "Content-Type: application/json" `
-  -d '{
+---
+
+## ✅ Checklist de Verificación Final
+
+- [ ] 10 contenedores corriendo (`docker-compose ps`)
+- [ ] Kong Gateway en estado "healthy"
+- [ ] Datos de prueba cargados (28 registros totales)
+- [ ] Login exitoso con usuario `admin`
+- [ ] Listar pedidos devuelve 8 registros
+- [ ] Crear pedido funciona correctamente
+- [ ] Asignar repartidor actualiza el estado
+- [ ] Generar factura calcula correctamente
+- [ ] Registrar pago marca factura como "PAGADA"
+- [ ] Swagger UI accesible en los 4 servicios
+
+---
+
+## 🎓 Próximos Pasos
+
+1. **Monitoreo**: Agregar Prometheus + Grafana
+2. **Trazabilidad**: Implementar Zipkin/Jaeger
+3. **Seguridad**: JWT con Kong JWT Plugin
+4. **CI/CD**: GitHub Actions para tests automáticos
+5. **Kubernetes**: Migrar a AKS/EKS
+6. **Caché**: Redis para sesiones
+7. **Mensajería**: RabbitMQ para eventos asincrónicos
+
+---
+
+## 📚 Referencias
+
+- **Kong Gateway**: https://docs.konghq.com/
+- **Spring Boot**: https://spring.io/projects/spring-boot
+- **OpenAPI 3.0**: https://swagger.io/specification/
+- **Docker Compose**: https://docs.docker.com/compose/
+- **PostgreSQL**: https://www.postgresql.org/docs/
     "username": "maria.lopez",
     "password": "SecurePass123!"
   }'
