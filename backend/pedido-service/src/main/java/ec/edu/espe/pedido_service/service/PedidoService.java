@@ -5,6 +5,7 @@ import ec.edu.espe.pedido_service.dto.PedidoResponse;
 import ec.edu.espe.pedido_service.dto.UpdatePedidoRequest;
 import ec.edu.espe.pedido_service.model.EstadoPedido;
 import ec.edu.espe.pedido_service.model.Pedido;
+import ec.edu.espe.pedido_service.model.PrioridadPedido;
 import ec.edu.espe.pedido_service.repository.PedidoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,29 +37,29 @@ public class PedidoService {
         //Generar número de pedido único
         String numeroPedido = generarNumeroPedido();
 
-        //Crear entidad
-        Pedido pedido = Pedido.builder()
-                .numeroPedido(numeroPedido)
-                .clienteId(request.getClienteId())
-                .clienteNombre(request.getClienteNombre())
-                .tipoEntrega(request.getTipoEntrega())
-                .estado(EstadoPedido.RECIBIDO)
-                .prioridad(request.getPrioridad())
-                .direccionOrigen(request.getDireccionOrigen())
-                .latitudOrigen(request.getLatitudOrigen())
-                .longitudOrigen(request.getLongitudOrigen())
-                .direccionDestino(request.getDireccionDestino())
-                .latitudDestino(request.getLatitudDestino())
-                .longitudDestino(request.getLongitudDestino())
-                .descripcionPaquete(request.getDescripcionPaquete())
-                .pesoKg(request.getPesoKg())
-                .dimensiones(request.getDimensiones())
-                .tarifaBase(BigDecimal.ZERO)
-                .tarifaTotal(BigDecimal.ZERO)
-                .fechaEstimadaEntrega(request.getFechaEstimadaEntrega())
-                .observaciones(request.getObservaciones())
-                .activo(true)
-                .build();
+        //Crear entidad - Usar constructor new() en lugar de builder para evitar @Builder.Default
+        Pedido pedido = new Pedido();
+        pedido.setId(null);  // Forzar estado transient
+        pedido.setNumeroPedido(numeroPedido);
+        pedido.setClienteId(request.getClienteId());
+        pedido.setClienteNombre(request.getClienteNombre());
+        pedido.setTipoEntrega(request.getTipoEntrega());
+        pedido.setEstado(EstadoPedido.RECIBIDO);
+        pedido.setPrioridad(request.getPrioridad() != null ? request.getPrioridad() : PrioridadPedido.NORMAL);
+        pedido.setDireccionOrigen(request.getDireccionOrigen());
+        pedido.setLatitudOrigen(request.getLatitudOrigen());
+        pedido.setLongitudOrigen(request.getLongitudOrigen());
+        pedido.setDireccionDestino(request.getDireccionDestino());
+        pedido.setLatitudDestino(request.getLatitudDestino());
+        pedido.setLongitudDestino(request.getLongitudDestino());
+        pedido.setDescripcionPaquete(request.getDescripcionPaquete());
+        pedido.setPesoKg(request.getPesoKg());
+        pedido.setDimensiones(request.getDimensiones());
+        pedido.setTarifaBase(BigDecimal.ZERO);
+        pedido.setTarifaTotal(BigDecimal.ZERO);
+        pedido.setFechaEstimadaEntrega(request.getFechaEstimadaEntrega());
+        pedido.setObservaciones(request.getObservaciones());
+        pedido.setActivo(true);
 
         //Validar cobertura antes de guardar
         if (!pedido.validarCobertura()) {
@@ -68,7 +69,9 @@ public class PedidoService {
             );
         }
 
+        // Guardar la entidad (persist - una sola vez)
         Pedido savedPedido = pedidoRepository.save(pedido);
+        
         return convertirAResponse(savedPedido);
     }
 
