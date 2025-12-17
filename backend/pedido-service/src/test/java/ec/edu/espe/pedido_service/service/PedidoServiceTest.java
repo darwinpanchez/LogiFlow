@@ -4,7 +4,7 @@ import ec.edu.espe.pedido_service.dto.CreatePedidoRequest;
 import ec.edu.espe.pedido_service.dto.PedidoResponse;
 import ec.edu.espe.pedido_service.model.EstadoPedido;
 import ec.edu.espe.pedido_service.model.Pedido;
-import ec.edu.espe.pedido_service.model.Prioridad;
+import ec.edu.espe.pedido_service.model.PrioridadPedido;
 import ec.edu.espe.pedido_service.model.TipoEntrega;
 import ec.edu.espe.pedido_service.repository.PedidoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ class PedidoServiceTest {
                 .clienteId(clienteId)
                 .clienteNombre("Juan Pérez")
                 .tipoEntrega(TipoEntrega.URBANA_RAPIDA)
-                .prioridad(Prioridad.NORMAL)
+                .prioridad(PrioridadPedido.NORMAL)
                 .direccionOrigen("Av. Amazonas N24-03")
                 .latitudOrigen(-0.1807)
                 .longitudOrigen(-78.4678)
@@ -63,7 +63,7 @@ class PedidoServiceTest {
                 .clienteNombre("Juan Pérez")
                 .tipoEntrega(TipoEntrega.URBANA_RAPIDA)
                 .estado(EstadoPedido.RECIBIDO)
-                .prioridad(Prioridad.NORMAL)
+                .prioridad(PrioridadPedido.NORMAL)
                 .direccionOrigen("Av. Amazonas N24-03")
                 .latitudOrigen(-0.1807)
                 .longitudOrigen(-78.4678)
@@ -130,7 +130,7 @@ class PedidoServiceTest {
         when(pedidoRepository.save(any(Pedido.class))).thenReturn(pedido);
 
         // Act
-        PedidoResponse response = pedidoService.asignarRepartidor(pedidoId, repartidorId);
+        PedidoResponse response = pedidoService.asignarRepartidor(pedidoId, repartidorId, "Carlos López");
 
         // Assert
         assertNotNull(response);
@@ -146,7 +146,7 @@ class PedidoServiceTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> pedidoService.asignarRepartidor(pedidoId, repartidorId)
+                () -> pedidoService.asignarRepartidor(pedidoId, repartidorId, "Carlos López")
         );
         assertTrue(exception.getMessage().contains("no encontrado"));
         verify(pedidoRepository, never()).save(any());
@@ -185,7 +185,7 @@ class PedidoServiceTest {
         when(pedidoRepository.save(any(Pedido.class))).thenReturn(pedido);
 
         // Act
-        PedidoResponse response = pedidoService.actualizarEstado(pedidoId, EstadoPedido.EN_CAMINO);
+        PedidoResponse response = pedidoService.cambiarEstado(pedidoId, EstadoPedido.EN_RUTA);
 
         // Assert
         assertNotNull(response);

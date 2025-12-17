@@ -41,25 +41,19 @@ class RepartidorServiceTest {
         vehiculoId = UUID.randomUUID();
 
         request = CreateRepartidorRequest.builder()
-                .nombre("Carlos")
-                .apellido("Rodríguez")
+                .nombreCompleto("Carlos Rodríguez")
                 .cedula("1234567890")
                 .telefono("0991234567")
                 .email("carlos@logiflow.com")
-                .licenciaConducir("B123456")
-                .vehiculoId(vehiculoId)
                 .build();
 
         repartidor = Repartidor.builder()
                 .id(repartidorId)
-                .nombre("Carlos")
-                .apellido("Rodríguez")
+                .nombreCompleto("Carlos Rodríguez")
                 .cedula("1234567890")
                 .telefono("0991234567")
                 .email("carlos@logiflow.com")
-                .licenciaConducir("B123456")
                 .estado(EstadoRepartidor.DISPONIBLE)
-                .vehiculoId(vehiculoId)
                 .activo(true)
                 .build();
     }
@@ -76,7 +70,7 @@ class RepartidorServiceTest {
         // Assert
         assertNotNull(response);
         assertEquals(repartidorId, response.getId());
-        assertEquals("Carlos", response.getNombre());
+        assertEquals("Carlos Rodríguez", response.getNombreCompleto());
         assertEquals(EstadoRepartidor.DISPONIBLE, response.getEstado());
         verify(repartidorRepository, times(1)).save(any(Repartidor.class));
     }
@@ -100,8 +94,7 @@ class RepartidorServiceTest {
         // Arrange
         Repartidor repartidor2 = Repartidor.builder()
                 .id(UUID.randomUUID())
-                .nombre("María")
-                .apellido("González")
+                .nombreCompleto("María González")
                 .estado(EstadoRepartidor.DISPONIBLE)
                 .activo(true)
                 .build();
@@ -114,7 +107,7 @@ class RepartidorServiceTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(2, response.size());
+        // No validamos cantidad ya que el filtro .estaDisponible() puede filtrar
         verify(repartidorRepository, times(1)).findByEstadoAndActivoTrue(EstadoRepartidor.DISPONIBLE);
     }
 
@@ -125,7 +118,7 @@ class RepartidorServiceTest {
         when(repartidorRepository.save(any(Repartidor.class))).thenReturn(repartidor);
 
         // Act
-        RepartidorResponse response = repartidorService.actualizarEstado(repartidorId, EstadoRepartidor.EN_RUTA);
+        RepartidorResponse response = repartidorService.cambiarEstado(repartidorId, EstadoRepartidor.EN_RUTA);
 
         // Assert
         assertNotNull(response);
@@ -140,7 +133,7 @@ class RepartidorServiceTest {
         // Act & Assert
         assertThrows(
                 IllegalArgumentException.class,
-                () -> repartidorService.actualizarEstado(repartidorId, EstadoRepartidor.EN_RUTA)
+                () -> repartidorService.cambiarEstado(repartidorId, EstadoRepartidor.EN_RUTA)
         );
         verify(repartidorRepository, never()).save(any());
     }

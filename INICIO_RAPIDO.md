@@ -401,6 +401,177 @@ docker-compose logs logiflow_auth_db
 
 ---
 
+## 🎯 Flujo Completo End-to-End (Ejemplo Realista)
+
+Este flujo muestra el ciclo completo de una entrega desde registro hasta pago:
+
+### Paso 1: Registrar Cliente
+
+```powershell
+curl -X POST http://localhost:8000/auth/api/auth/register `
+  -H "Content-Type: application/json" `
+  -d '{
+    "username": "maria.lopez",
+    "password": "SecurePass123!",
+    "email": "maria.lopez@gmail.com",
+    "nombreCompleto": "María López García",
+    "telefono": "0987654321",
+    "rol": "CLIENTE"
+  }'
+```
+
+**Respuesta esperada**: Usuario creado con `accessToken` y `refreshToken`
+
+### Paso 2: Login del Cliente
+
+```powershell
+curl -X POST http://localhost:8000/auth/api/auth/login `
+  -H "Content-Type: application/json" `
+  -d '{
+    "username": "maria.lopez",
+    "password": "SecurePass123!"
+  }'
+```
+
+**Guardar el `accessToken` de la respuesta** (lo usaremos como `$TOKEN`)
+
+### Paso 3: Crear Pedido
+
+```powershell
+# Reemplaza $TOKEN con el token obtenido en el paso anterior
+curl -X POST http://localhost:8000/pedidos/api/pedidos `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $TOKEN" `
+  -d '{
+    "clienteNombre": "María López García",
+    "tipoEntrega": "URBANA_RAPIDA",
+    "prioridad": "ALTA",
+    "direccionOrigen": "Av. Amazonas N24-155, Quito",
+    "latitudOrigen": -0.1807,
+    "longitudOrigen": -78.4678,
+    "direccionDestino": "Av. 6 de Diciembre N34-234, Quito",
+    "latitudDestino": -0.1650,
+    "longitudDestino": -78.4822,
+    "pesoKg": 3.5,
+    "descripcionPaquete": "Laptop Dell XPS 15",
+    "valorDeclarado": 1200.00
+  }'
+```
+
+**Guardar el `id` del pedido de la respuesta** (lo usaremos como `$PEDIDO_ID`)
+
+### Paso 4: Listar Repartidores Disponibles
+
+```powershell
+curl http://localhost:8000/fleet/api/repartidores/disponibles `
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Seleccionar un repartidor disponible** y guardar su `id` como `$REPARTIDOR_ID`
+
+### Paso 5: Asignar Repartidor al Pedido
+
+```powershell
+# Reemplaza $PEDIDO_ID y $REPARTIDOR_ID con los valores reales
+curl -X PATCH "http://localhost:8000/pedidos/api/pedidos/$PEDIDO_ID/asignar-repartidor" `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $TOKEN" `
+  -d '{
+    "repartidorId": "$REPARTIDOR_ID",
+    "repartidorNombre": "Carlos Méndez"
+  }'
+```
+
+**Estado del pedido cambia a**: `ASIGNADO`
+
+### Paso 6: Generar Factura
+
+```powershell
+curl -X POST http://localhost:8000/billing/api/facturas `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $TOKEN" `
+  -d '{
+    "pedidoId": "$PEDIDO_ID",
+    "numeroPedido": "PED-20241216-000009",
+    "clienteNombre": "María López García",
+    "tipoEntrega": "URBANA_RAPIDA",
+    "distanciaKm": 5.2,
+    "pesoKg": 3.5,
+    "prioridad": "ALTA",
+    "descuento": 0
+  }'
+```
+
+**Guardar el `id` de la factura** como `$FACTURA_ID`
+
+### Paso 7: Consultar Factura Generada
+
+```powershell
+curl http://localhost:8000/billing/api/facturas/$FACTURA_ID `
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Revisar**: `subtotal`, `impuestoIVA`, `total`, `estado` (debe ser `PENDIENTE`)
+
+### Paso 8: Registrar Pago
+
+```powershell
+curl -X PATCH "http://localhost:8000/billing/api/facturas/$FACTURA_ID/pagar" `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $TOKEN" `
+  -d '{
+    "metodoPago": "TARJETA_CREDITO"
+  }'
+```
+
+**Estado de la factura cambia a**: `PAGADA`, se registra `fechaPago`
+
+### Paso 9: Actualizar Estado del Pedido (En Ruta)
+
+```powershell
+curl -X PATCH "http://localhost:8000/pedidos/api/pedidos/$PEDIDO_ID/cambiar-estado" `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $TOKEN" `
+  -d '{
+    "nuevoEstado": "EN_RUTA"
+  }'
+```
+
+### Paso 10: Marcar Pedido como Entregado
+
+```powershell
+curl -X PATCH "http://localhost:8000/pedidos/api/pedidos/$PEDIDO_ID/cambiar-estado" `
+  -H "Content-Type: application/json" `
+  -H "Authorization: Bearer $TOKEN" `
+  -d '{
+    "nuevoEstado": "ENTREGADO"
+  }'
+```
+
+**¡Ciclo completo finalizado! ✅**
+
+---
+
+## 📊 Verificar OpenAPI / Swagger UI
+
+Puedes explorar las APIs interactivamente en:
+
+- **Auth Service**: http://localhost:8082/swagger-ui.html
+- **Pedido Service**: http://localhost:8083/swagger-ui.html
+- **Fleet Service**: http://localhost:8084/swagger-ui.html
+- **Billing Service**: http://localhost:8085/swagger-ui.html
+
+O a través de Kong Gateway:
+
+- http://localhost:8000/auth/swagger-ui.html
+- http://localhost:8000/pedidos/swagger-ui.html
+- http://localhost:8000/fleet/swagger-ui.html
+- http://localhost:8000/billing/swagger-ui.html
+
+**Contrato OpenAPI JSON**: Reemplaza `/swagger-ui.html` con `/v3/api-docs`
+
+---
+
 ## ✅ Checklist de Verificación
 
 - [ ] Docker Desktop está corriendo

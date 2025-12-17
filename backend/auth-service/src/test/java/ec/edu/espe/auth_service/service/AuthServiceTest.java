@@ -17,7 +17,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,8 +76,8 @@ class AuthServiceTest {
         when(usuarioRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$encodedPassword");
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuario);
-        when(jwtUtil.generateToken(any())).thenReturn("accessToken");
-        when(jwtUtil.generateRefreshToken(any())).thenReturn("refreshToken");
+        when(jwtUtil.generateAccessToken(anyString(), any())).thenReturn("accessToken");
+        when(jwtUtil.generateRefreshToken(anyString())).thenReturn("refreshToken");
 
         // Act
         AuthResponse response = authService.register(registerRequest);
@@ -124,8 +123,8 @@ class AuthServiceTest {
         // Arrange
         when(usuarioRepository.findByUsername("testuser")).thenReturn(Optional.of(usuario));
         when(passwordEncoder.matches("password123", "$2a$10$encodedPassword")).thenReturn(true);
-        when(jwtUtil.generateToken(any())).thenReturn("accessToken");
-        when(jwtUtil.generateRefreshToken(any())).thenReturn("refreshToken");
+        when(jwtUtil.generateAccessToken(anyString(), any())).thenReturn("accessToken");
+        when(jwtUtil.generateRefreshToken(anyString())).thenReturn("refreshToken");
 
         // Act
         AuthResponse response = authService.login(loginRequest);
@@ -175,7 +174,7 @@ class AuthServiceTest {
 
         // Act & Assert
         assertThrows(
-                org.springframework.security.authentication.DisabledException.class,
+                IllegalArgumentException.class,
                 () -> authService.login(loginRequest)
         );
     }
