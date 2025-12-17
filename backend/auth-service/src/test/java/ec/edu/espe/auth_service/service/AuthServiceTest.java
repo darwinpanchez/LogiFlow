@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.HashSet;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -60,6 +61,7 @@ class AuthServiceTest {
                 .activo(true)
                 .cuentaBloqueada(false)
                 .intentosFallidos(0)
+                .roles(new HashSet<>())  // Inicializar roles
                 .build();
         usuario.addRol(RolEnum.CLIENTE);
 
@@ -86,7 +88,7 @@ class AuthServiceTest {
         assertNotNull(response);
         assertEquals("accessToken", response.getAccessToken());
         assertEquals("testuser", response.getUsername());
-        verify(usuarioRepository, times(1)).save(any(Usuario.class));
+        verify(usuarioRepository, times(2)).save(any(Usuario.class)); // Guardado en dos fases
     }
 
     @Test

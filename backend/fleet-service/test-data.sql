@@ -21,8 +21,8 @@ INSERT INTO vehiculo (
     'QUI-1234', 'MOTOCICLETA', 'Honda', 'XR 190', 2023, 'Rojo',
     50.0, 0.5,
     'DISPONIBLE', 5000,
-    'SEG-001', '2025-12-31',
-    '2025-12-31', '2025-06-30',
+    'SEG-001', '2026-12-31',
+    '2026-12-31', '2026-06-30',
     'Vehículo en perfecto estado', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 );
 
@@ -32,8 +32,8 @@ INSERT INTO vehiculo VALUES (
     'QUI-5678', 'MOTOCICLETA', 'Yamaha', 'FZ 150', 2022, 'Azul',
     45.0, 0.4,
     'EN_USO', 12000,
-    'SEG-002', '2025-11-30',
-    '2025-11-30', '2025-05-31',
+    'SEG-002', '2026-11-30',
+    '2026-11-30', '2026-05-31',
     'En uso actualmente', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 );
 
@@ -43,8 +43,8 @@ INSERT INTO vehiculo VALUES (
     'GYE-9876', 'AUTOMOVIL', 'Chevrolet', 'Sail', 2021, 'Blanco',
     200.0, 2.0,
     'DISPONIBLE', 45000,
-    'SEG-003', '2026-01-15',
-    '2026-01-15', '2025-07-15',
+    'SEG-003', '2027-01-15',
+    '2027-01-15', '2026-07-15',
     'Apto para entregas intermunicipales', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 );
 
@@ -54,8 +54,8 @@ INSERT INTO vehiculo VALUES (
     'CUE-4567', 'FURGONETA', 'Hyundai', 'H100', 2020, 'Gris',
     800.0, 5.0,
     'DISPONIBLE', 78000,
-    'SEG-004', '2025-10-31',
-    '2025-10-31', '2025-04-30',
+    'SEG-004', '2026-10-31',
+    '2026-10-31', '2026-04-30',
     'Ideal para cargas medianas', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 );
 
@@ -65,8 +65,8 @@ INSERT INTO vehiculo VALUES (
     'LJA-7890', 'CAMION', 'Hino', 'FC 1016', 2019, 'Blanco',
     3000.0, 20.0,
     'DISPONIBLE', 125000,
-    'SEG-005', '2025-09-30',
-    '2025-09-30', '2025-03-31',
+    'SEG-005', '2026-09-30',
+    '2026-09-30', '2026-03-31',
     'Para entregas nacionales pesadas', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 );
 
@@ -76,8 +76,8 @@ INSERT INTO vehiculo VALUES (
     'QUI-3333', 'AUTOMOVIL', 'Nissan', 'Versa', 2018, 'Negro',
     180.0, 1.8,
     'MANTENIMIENTO', 95000,
-    'SEG-006', '2025-08-31',
-    '2025-08-31', '2025-02-28',
+    'SEG-006', '2026-08-31',
+    '2026-08-31', '2026-02-28',
     'Mantenimiento preventivo programado', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 );
 
@@ -141,7 +141,7 @@ INSERT INTO repartidor VALUES (
     'r4444444-4444-4444-4444-444444444444',
     'REP004', 'María González', '1787654321', 'maria.gonzalez@logiflow.com', '0954321098',
     'Av. Eloy Alfaro N50-234, Quito', '1985-03-18', '2023-08-20',
-    'LIC-456789', '2025-03-18',
+    'LIC-456789', '2027-03-18',
     'DISPONIBLE', 'v4444444-4444-4444-4444-444444444444',
     71, 4, 4.8,
     'Experiencia en cargas voluminosas', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
@@ -185,7 +185,7 @@ INSERT INTO repartidor VALUES (
     gen_random_uuid(),
     'REP007', 'Diego Mendoza', '1745678901', 'diego.mendoza@logiflow.com', '0921098765',
     'Cumbayá, Quito', '1993-04-05', '2023-09-10',
-    'LIC-789012', '2024-04-05',
+    'LIC-789012', '2026-04-05',
     'INACTIVO', NULL,
     52, 6, 4.3,
     'Licencia vencida - en proceso de renovación', false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
