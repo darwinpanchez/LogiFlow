@@ -17,9 +17,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 //Servicio de autenticación con lógica de registro, login y refresh de tokens
@@ -32,6 +36,9 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
@@ -59,23 +66,30 @@ public class AuthService {
             throw new IllegalArgumentException("El email ya existe: " + request.getEmail());
         }
 
-        //Crear nuevo usuario
-        Usuario usuario = Usuario.builder()
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .nombreCompleto(request.getNombreCompleto())
-                .telefono(request.getTelefono())
-                .activo(true)
-                .cuentaBloqueada(false)
-                .intentosFallidos(0)
-                .build();
+        //Crear nuevo usuario con constructor - dejar roles e ID null inicialmente
+        Usuario usuario = new Usuario();
+        usuario.setId(null); // Forzar ID a null para garantizar que Hibernate lo trate como transient
+        usuario.setUsername(request.getUsername());
+        usuario.setEmail(request.getEmail());
+        usuario.setPassword(passwordEncoder.encode(request.getPassword()));
+        usuario.setNombreCompleto(request.getNombreCompleto());
+        usuario.setTelefono(request.getTelefono());
+        usuario.setActivo(true);
+        usuario.setCuentaBloqueada(false);
+        usuario.setIntentosFallidos(0);
+        usuario.setRoles(null); // Dejar roles como null inicialmente
 
-        //Asignar rol CLIENTE por defecto
-        usuario.addRol(RolEnum.CLIENTE);
-
-        //Guardar usuario
+        //Guardar usando repository (debería hacer persist porque ID es null)
         Usuario savedUsuario = usuarioRepository.save(usuario);
+        
+        //AHORA inicializar roles y agregar CLIENTE en la entidad ya persistida
+        if (savedUsuario.getRoles() == null) {
+            savedUsuario.setRoles(new HashSet<>());
+        }
+        savedUsuario.getRoles().add(RolEnum.CLIENTE);
+        
+        //Guardar nuevamente para actualizar roles
+        savedUsuario = usuarioRepository.save(savedUsuario);
         logger.info("Usuario registrado exitosamente: {}", savedUsuario.getUsername());
 
         //Generar tokens JWT

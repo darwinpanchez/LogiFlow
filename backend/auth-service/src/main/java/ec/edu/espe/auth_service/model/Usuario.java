@@ -45,8 +45,7 @@ public class Usuario {
     @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "rol")
-    @Builder.Default
-    private Set<RolEnum> roles = new HashSet<>();
+    private Set<RolEnum> roles;
 
     @Column(nullable = false)
     @Builder.Default
